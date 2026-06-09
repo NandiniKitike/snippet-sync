@@ -1,54 +1,48 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+
 /**
- * Simulates calling an AI API to get tags and a description for a code snippet.
- * In a real application, this would call OpenAI, Gemini, or a backend service.
+ * Sends a code snippet to the Gemini API and returns AI-generated
+ * title, description, and tags.
  */
-export const analyzeSnippetMock = async (code) => {
-  return new Promise((resolve) => {
-    // Simulate API delay
-    setTimeout(() => {
-      let tags = ['code'];
-      let desc = 'A useful code snippet.';
-      let title = 'Code Snippet';
+export const analyzeSnippet = async (code) => {
+  const prompt = `You are a developer assistant. Analyze the following code snippet and respond with ONLY a valid JSON object — no markdown, no code fences, just the raw JSON.
 
-      const codeLower = code.toLowerCase();
+The JSON must have exactly these fields:
+{
+  "title": "A short, descriptive title for this snippet (max 5 words)",
+  "desc": "A one-sentence description of what this code does",
+  "tags": ["tag1", "tag2", "tag3"]
+}
 
-      // Simple heuristic logic to simulate AI understanding
-      if (codeLower.includes('function') || codeLower.includes('=>')) {
-        tags.push('javascript');
-        if (codeLower.includes('react') || codeLower.includes('use')) {
-          tags.push('react');
-          title = 'React Component/Hook';
-          desc = 'A React function or hook snippet for building UIs.';
-        } else {
-          title = 'Utility Function';
-          desc = 'A JavaScript utility function for data manipulation or logic.';
-        }
-      } else if (codeLower.includes('div') || codeLower.includes('span') || codeLower.includes('<html')) {
-        tags.push('html');
-        title = 'HTML Template';
-        desc = 'Structural markup template for a web page.';
-      } else if (codeLower.includes('import') && codeLower.includes('from')) {
-        tags.push('module');
-      }
+Tags should include the programming language (e.g. "javascript", "python", "sql", "html", "css") and relevant concepts (e.g. "hook", "utility", "async", "sorting").
 
-      if (codeLower.includes('class') && codeLower.includes('{')) {
-        tags.push('oop');
-      }
-      
-      if (codeLower.includes('select') && codeLower.includes('from')) {
-          tags.push('sql');
-          title = 'SQL Query';
-          desc = 'A database query for retrieving or manipulating data.';
-      }
+Code snippet:
+\`\`\`
+${code}
+\`\`\``;
 
-      // Deduplicate tags
-      tags = [...new Set(tags)];
+  const result = await model.generateContent(prompt);
+  const text = result.response.text().trim();
 
-      resolve({
-        title,
-        desc,
-        tags
-      });
-    }, 1500); // 1.5 second delay to feel like an API
-  });
+  // Strip any accidental markdown code fences from the response
+  const cleaned = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    return {
+      title: parsed.title || 'Code Snippet',
+      desc: parsed.desc || 'A useful code snippet.',
+      tags: Array.isArray(parsed.tags) ? parsed.tags : ['code'],
+    };
+  } catch {
+    // Fallback if JSON parsing fails
+    return {
+      title: 'Code Snippet',
+      desc: 'A useful code snippet.',
+      tags: ['code'],
+    };
+  }
 };

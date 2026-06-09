@@ -6,7 +6,7 @@ A modern, fast, and sleek web application designed for developers to store, orga
 
 ## ✨ Features
 
-- **🤖 AI Auto-Tagging (Mock Integration)**: Paste your code, and the application automatically analyzes it to generate a relevant title, description, and tags (simulating an AI API like OpenAI or Gemini).
+- **🤖 Gemini AI Auto-Tagging**: Paste your code and the app sends it to Google's **Gemini 2.5 Flash** model, which automatically generates a relevant title, description, and tags.
 - **🎨 Premium Dark Mode UI**: A custom-built, glassmorphism-inspired interface utilizing modern CSS variables and flexbox layouts—no generic CSS frameworks used.
 - **💾 Local Storage Persistence**: Utilizes custom React Hooks to save your snippets directly to your browser's local storage. Your data remains safe even after refreshing.
 - **🌈 Real-Time Syntax Highlighting**: Integrated with `react-syntax-highlighter` using the VS Code Dark+ theme for a professional, IDE-like reading experience.
@@ -15,8 +15,9 @@ A modern, fast, and sleek web application designed for developers to store, orga
 ## 🛠️ Tech Stack
 
 - **Framework**: React 18 (Bootstrapped with Vite for lightning-fast HMR)
+- **AI**: Google Gemini API (`gemini-2.5-flash-lite`) via `@google/generative-ai`
 - **Styling**: Pure Vanilla CSS (Custom Design System, CSS Variables, Flexbox)
-- **Syntax Highlighting**: `react-syntax-highlighter`
+- **Syntax Highlighting**: `react-syntax-highlighter` (VS Code Dark+ theme)
 - **State Management**: React Hooks (`useState`, `useEffect`, Custom `useLocalStorage` Hook)
 
 ## 🚀 Getting Started
@@ -40,11 +41,16 @@ Make sure you have Node.js and npm installed on your machine.
    ```sh
    npm install
    ```
-4. Start the development server
+4. Set up your environment variables
+   ```sh
+   cp .env.example .env
+   ```
+   Then open `.env` and add your Gemini API key from [aistudio.google.com](https://aistudio.google.com/app/apikey)
+5. Start the development server
    ```sh
    npm run dev
    ```
-5. Open `http://localhost:5173` in your browser.
+6. Open `http://localhost:5173` in your browser.
 
 ## 💡 Why I Built This
 

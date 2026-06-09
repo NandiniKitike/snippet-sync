@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import { analyzeSnippetMock } from './services/mockAi';
+import { analyzeSnippet } from './services/mockAi';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './App.css';
@@ -37,8 +37,8 @@ function App() {
     setIsAnalyzing(true);
     
     try {
-      // Simulate sending to AI to get metadata
-      const aiResult = await analyzeSnippetMock(newCode);
+      // Send code to the real Gemini API for analysis
+      const aiResult = await analyzeSnippet(newCode);
       
       const newSnippet = {
         id: Date.now(),
@@ -181,7 +181,7 @@ function App() {
                     disabled={isAnalyzing || !newCode.trim()}
                     style={{ opacity: (isAnalyzing || !newCode.trim()) ? 0.6 : 1 }}
                   >
-                    {isAnalyzing ? 'Analyzing with AI...' : 'Save & Auto-Tag'}
+                    {isAnalyzing ? '🤖 Gemini is analyzing...' : '✨ Save & Auto-Tag with AI'}
                   </button>
                 </div>
               </div>
