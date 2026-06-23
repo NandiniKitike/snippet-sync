@@ -25,10 +25,25 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Mobile States
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [mobileView, setMobileView] = useState('list'); // 'list' | 'detail'
+
   const handleCreateNew = () => {
     setActiveSnippet(null);
     setIsCreating(true);
     setNewCode('');
+    setMobileView('detail');
+  };
+
+  const handleSelectSnippet = (snippet) => {
+    setActiveSnippet(snippet);
+    setIsCreating(false);
+    setMobileView('detail');
+  };
+
+  const handleBackToList = () => {
+    setMobileView('list');
   };
 
   const handleSaveSnippet = async () => {
@@ -66,8 +81,13 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
           <h1 className="sidebar-title">
             <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
@@ -75,15 +95,15 @@ function App() {
           </h1>
         </div>
         <nav className="sidebar-nav">
-          <button className="nav-item active">
+          <button className="nav-item active" onClick={() => setIsSidebarOpen(false)}>
             <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
             All Snippets
           </button>
-          <button className="nav-item">
+          <button className="nav-item" onClick={() => setIsSidebarOpen(false)}>
             <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
             Favorites
           </button>
-          <button className="nav-item">
+          <button className="nav-item" onClick={() => setIsSidebarOpen(false)}>
             <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
             Tags
           </button>
@@ -93,21 +113,36 @@ function App() {
       {/* Main Content */}
       <main className="main-content">
         <header className="header">
+          {/* Hamburger button - mobile only */}
+          <button
+            className="hamburger-btn"
+            onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open menu"
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+
           <div className="search-bar">
             <svg className="icon search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input 
               type="text" 
               className="search-input" 
-              placeholder="Search snippets by title or tag..." 
+              placeholder="Search snippets..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+
+          {/* New button in header - mobile only */}
+          <button className="btn-primary header-new-btn" onClick={handleCreateNew}>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+            New
+          </button>
         </header>
 
         <div className="content-area">
           {/* Snippet Feed */}
-          <section className="feed">
+          <section className={`feed ${mobileView === 'list' ? 'mobile-visible' : 'mobile-hidden'}`}>
             <div className="feed-header">
               <span className="feed-title">Snippets ({filteredSnippets.length})</span>
               <button className="btn-primary" style={{ padding: '0.4rem 0.8rem' }} onClick={handleCreateNew}>
@@ -123,10 +158,7 @@ function App() {
                   <div 
                     key={snippet.id} 
                     className={`snippet-card ${(activeSnippet?.id === snippet.id && !isCreating) ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveSnippet(snippet);
-                      setIsCreating(false);
-                    }}
+                    onClick={() => handleSelectSnippet(snippet)}
                   >
                     <h3 className="snippet-title">{snippet.title}</h3>
                     <p className="snippet-desc">{snippet.desc}</p>
@@ -142,7 +174,13 @@ function App() {
           </section>
 
           {/* Editor Area */}
-          <section className="editor-area">
+          <section className={`editor-area ${mobileView === 'detail' ? 'mobile-visible' : 'mobile-hidden'}`}>
+            {/* Mobile back button */}
+            <button className="back-btn" onClick={handleBackToList}>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              Back
+            </button>
+
             {isCreating ? (
               <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <h2 style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }}>✨ New Snippet</h2>
